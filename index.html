@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IPU CET Practice Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --surface: #13162a;
+    --card: #181c30;
+    --border: #252a45;
+    --gold: #c9a84c;
+    --gold-light: #e8c86d;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #e8eaf0;
+    --text-muted: #7a80a0;
+    --accent: #4f7eff;
+    --accent-dim: rgba(79,126,255,0.12);
+    --correct: #3ecf8e;
+    --incorrect: #f25f5c;
+    --unanswered: #7a80a0;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ══════════════════════════════════════
+     START SCREEN
+  ══════════════════════════════════════ */
+  #startScreen {
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+  }
+  #startScreen.active { display: flex; }
+
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .orb-1 { width: 500px; height: 500px; background: rgba(79,126,255,0.08); top: -100px; left: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(201,168,76,0.07); bottom: -80px; right: -80px; }
+
+  .start-card {
+    position: relative;
+    z-index: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 56px 52px;
+    max-width: 560px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .start-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 800;
+    line-height: 1.2;
+    background: linear-gradient(135deg, #fff 0%, var(--gold-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 14px;
+  }
+
+  .start-sub {
+    color: var(--text-muted);
+    font-size: 15px;
+    font-weight: 400;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .meta-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-icon { font-size: 20px; margin-bottom: 2px; }
+  .meta-val { font-size: 17px; font-weight: 700; color: var(--text); }
+  .meta-label { font-size: 11px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  .marking-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    font-size: 13px;
+  }
+
+  .mark-item { display: flex; align-items: center; gap: 7px; }
+  .mark-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mark-dot.c { background: var(--correct); }
+  .mark-dot.w { background: var(--incorrect); }
+  .mark-dot.u { background: var(--unanswered); }
+  .mark-item span { color: var(--text-muted); }
+  .mark-item strong { color: var(--text); }
+
+  .btn-start {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--gold) 0%, #a07828 100%);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0d0f1a;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    box-shadow: 0 8px 32px rgba(201,168,76,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-start::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-start:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.4); }
+  .btn-start:hover::after { opacity: 1; }
+  .btn-start:active { transform: translateY(0); }
+
+  /* ══════════════════════════════════════
+     TEST SCREEN
+  ══════════════════════════════════════ */
+  #testScreen {
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+  #testScreen.active { display: block; }
+
+  /* STICKY HEADER */
+  .test-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,26,0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 clamp(16px, 4vw, 48px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 66px;
+    gap: 16px;
+  }
+
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff, var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    max-width: 260px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* TIMER */
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .timer-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: 2px;
+    min-width: 80px;
+    text-align: right;
+    transition: color 0.3s;
+  }
+  .timer-display.danger { color: var(--incorrect); animation: pulse 1s ease-in-out infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .btn-pause {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn-pause:hover { background: var(--border); border-color: var(--text-muted); }
+
+  /* PAUSE OVERLAY */
+  .pause-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,15,26,0.92);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    backdrop-filter: blur(12px);
+  }
+  .pause-overlay.show { display: flex; }
+
+  .pause-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 52px;
+    text-align: center;
+    max-width: 380px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+  }
+
+  .pause-icon { font-size: 48px; margin-bottom: 16px; }
+  .pause-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .pause-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+
+  .btn-resume {
+    background: linear-gradient(135deg, var(--gold), #a07828);
+    border: none;
+    border-radius: var(--radius);
+    padding: 14px 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0d0f1a;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 24px rgba(201,168,76,0.3);
+  }
+  .btn-resume:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(201,168,76,0.4); }
+
+  /* QUESTIONS CONTAINER */
+  .questions-container {
+    max-width: 780px;
+    margin: 40px auto;
+    padding: 0 clamp(16px, 4vw, 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--border);
+    border-radius: 0 2px 2px 0;
+    transition: background 0.3s;
+  }
+
+  .question-card.answered::before { background: var(--gold); }
+  .question-card:hover { border-color: rgba(201,168,76,0.3); }
+
+  .q-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .q-text {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 22px;
+  }
+
+  .options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style: none;
+  }
+
+  .option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 13px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    background: var(--surface);
+    user-select: none;
+  }
+
+  .option-item:hover {
+    background: rgba(79,126,255,0.08);
+    border-color: rgba(79,126,255,0.4);
+    transform: translateX(3px);
+  }
+
+  .option-item.selected {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+  }
+
+  .option-letter {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gold);
+    background: rgba(201,168,76,0.12);
+    border-radius: 5px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .option-item.selected .option-letter {
+    background: var(--gold);
+    color: #0d0f1a;
+  }
+
+  .option-text {
+    font-size: 14.5px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.5;
+    padding-top: 3px;
+  }
+
+  /* SUBMIT SECTION */
+  .submit-section {
+    max-width: 780px;
+    margin: 12px auto 60px;
+    padding: 0 clamp(16px, 4vw, 32px);
+  }
+
+  .submit-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin-bottom: 28px;
+  }
+
+  .submit-info {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 17px;
+    background: linear-gradient(135deg, #4f7eff, #2a52cc);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 32px rgba(79,126,255,0.3);
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(79,126,255,0.4); }
+
+  /* ══════════════════════════════════════
+     RESULT SCREEN
+  ══════════════════════════════════════ */
+  #resultScreen {
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 60px 20px;
+  }
+  #resultScreen.active { display: flex; }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 52px 48px;
+    max-width: 620px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  .result-emoji { font-size: 56px; margin-bottom: 16px; }
+
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #fff, var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .result-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 36px; }
+
+  /* CIRCULAR SCORE */
+  .score-ring-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 36px;
+  }
+
+  .score-ring {
+    transform: rotate(-90deg);
+    width: 160px;
+    height: 160px;
+  }
+
+  .ring-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+  .ring-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dasharray 1.2s ease; }
+
+  .score-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .score-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+
+  /* STAT GRID */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-val { font-size: 26px; font-weight: 800; }
+  .stat-val.c { color: var(--correct); }
+  .stat-val.w { color: var(--incorrect); }
+  .stat-val.u { color: var(--text-muted); }
+  .stat-val.s { color: var(--gold); }
+  .stat-lbl { font-size: 12px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; }
+
+  .score-formula {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-retry {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--gold), #a07828);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0d0f1a;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 32px rgba(201,168,76,0.3);
+  }
+  .btn-retry:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.4); }
+
+  /* REVIEW LIST */
+  .review-section {
+    max-width: 620px;
+    width: 100%;
+    margin-top: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .review-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .review-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .review-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 3px;
+    min-width: 28px;
+  }
+
+  .review-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .review-body { flex: 1; }
+  .review-q { font-size: 13px; color: var(--text-muted); margin-bottom: 2px; }
+
+  .review-ans {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .review-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .start-card { padding: 36px 24px; }
+    .meta-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .header-title { font-size: 14px; }
+    .question-card { padding: 22px 20px; }
+    .result-card { padding: 36px 24px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .marking-box { gap: 16px; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════ START SCREEN ════════════ -->
+<div id="startScreen" class="screen active">
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="start-card">
+    <div class="logo-badge">📚 IPU CET</div>
+    <h1 class="start-title">Practice Test</h1>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-icon">❓</div>
+        <div class="meta-val">30</div>
+        <div class="meta-label">Questions</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-icon">⏱</div>
+        <div class="meta-val">45</div>
+        <div class="meta-label">Minutes</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-icon">🎯</div>
+        <div class="meta-val">120</div>
+        <div class="meta-label">Max Marks</div>
+      </div>
+    </div>
+
+    <div class="marking-box">
+      <div class="mark-item"><div class="mark-dot c"></div><span>Correct</span><strong>+4</strong></div>
+      <div class="mark-item"><div class="mark-dot w"></div><span>Wrong</span><strong>−1</strong></div>
+      <div class="mark-item"><div class="mark-dot u"></div><span>Skipped</span><strong>0</strong></div>
+    </div>
+
+    <button class="btn-start" onclick="startTest()">Start Test →</button>
+  </div>
+</div>
+
+<!-- ════════════ TEST SCREEN ════════════ -->
+<div id="testScreen" class="screen">
+  <header class="test-header">
+    <span class="header-title">IPU CET Practice</span>
+
+    <div class="header-center">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <span class="progress-text" id="progressText">0 / 30</span>
+    </div>
+
+    <div class="timer-wrap">
+      <span class="timer-display" id="timerDisplay">45:00</span>
+      <button class="btn-pause" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+    </div>
+  </header>
+
+  <!-- PAUSE OVERLAY -->
+  <div class="pause-overlay" id="pauseOverlay">
+    <div class="pause-card">
+      <div class="pause-icon">⏸</div>
+      <div class="pause-title">Test Paused</div>
+      <div class="pause-sub">Your progress is saved. The timer will resume when you continue.</div>
+      <button class="btn-resume" onclick="togglePause()">▶ Resume Test</button>
+    </div>
+  </div>
+
+  <div class="questions-container" id="questionsContainer"></div>
+
+  <div class="submit-section">
+    <div class="submit-divider"></div>
+    <p class="submit-info" id="submitInfo">Answer all questions before submitting.</p>
+    <button class="btn-submit" onclick="submitTest()">Submit Test</button>
+  </div>
+</div>
+
+<!-- ════════════ RESULT SCREEN ════════════ -->
+<div id="resultScreen" class="screen">
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+
+  <div class="result-card">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-title" id="resultTitle">Test Complete!</div>
+    <div class="result-sub" id="resultSub">Here's your detailed performance breakdown</div>
+
+    <div class="score-ring-wrap">
+      <svg class="score-ring" viewBox="0 0 160 160">
+        <circle class="ring-bg" cx="80" cy="80" r="65"/>
+        <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="65" stroke-dasharray="0 408" stroke-dashoffset="0"/>
+      </svg>
+      <div class="score-center">
+        <span class="score-pct" id="scorePct">0%</span>
+        <span class="score-label">Score</span>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-val c" id="rCorrect">0</div>
+        <div class="stat-lbl">✅ Correct</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val w" id="rWrong">0</div>
+        <div class="stat-lbl">❌ Incorrect</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val u" id="rSkipped">0</div>
+        <div class="stat-lbl">⏭ Skipped</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val s" id="rScore">0</div>
+        <div class="stat-lbl">🏆 Marks</div>
+      </div>
+    </div>
+
+    <div class="score-formula" id="scoreFormula">
+      (0 × 4) − (0 × 1) = 0 / 120
+    </div>
+
+    <button class="btn-retry" onclick="retryTest()">↩ Retry Test</button>
+  </div>
+
+  <div class="review-section" id="reviewSection">
+    <div class="review-title">Question Review</div>
+    <div id="reviewList"></div>
+  </div>
+</div>
+
+<script>
+// ─── QUESTION DATA ───────────────────────────────────────
+// Fill in your questions below. Set correctAnswer to 'a', 'b', 'c', or 'd'.
+const questions = [
+  {
+    text: "If A = {x:x = n² , n = 1,2,3} then the number of proper subsets is",
+    options: { a: "3", b: "7", c: "8", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "Which one of the following is correct?",
+    options: { a: "(A∩B)⊂(A∪B)", b: "(A∩B)⊆(A∪B)", c: "(A∪B)⊂(A∩B)", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "If A = {1,2,4} , B = {2,4,5}, C = {2,5} then (A-B) x (B-C) is",
+    options: { a: "{(1,2),(1,4),(2,5)}", b: "{1,4}", c: "(1,4)", d: "None of these" },
+    correctAnswer: "d"
+  },
+  {
+    text: "A ∩ (A∪B)'",
+    options: { a: "A", b: "B", c: "{}", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "20 teachers of a school either teach Mathematics or Physics. 12 of them teach Mathematics while 4 teach both the subjects. Then, the number of teachers teaching Physics only is",
+    options: { a: "12", b: "8", c: "16", d: "20" },
+    correctAnswer: "b"
+  },
+  {
+    text: "Let R be a relation in N defined by R = {(x,y):x + 2y = 8}",
+    options: { a: "{2,4,6}", b: "{1,2,3}", c: "{1,2,3,4,6}", d: "None of these" },
+    correctAnswer: "a"
+  },
+  {
+    text: "If A, B, and C are any three sets, then A - (B∪C) is equal to",
+    options: { a: "(A-B)∪(A-C)", b: "(A-B)∩(A-C)", c: "(A-B)∪C", d: "(A-B)∩C" },
+    correctAnswer: "b"
+  },
+  {
+    text: "√(-25) + 3√(-4) + 2√(-9)",
+    options: { a: "10i", b: "12i", c: "17i", d: "20i" },
+    correctAnswer: "c"
+  },
+  {
+    text: "y = 2 + 3i and z = 1 + 2i, y/z = x + iy then x is equal to",
+    options: { a: "1/5", b: "7/5", c: "8/5", d: "-2/5" },
+    correctAnswer: "c"
+  },
+  {
+    text: "i²⁵⁴ equals",
+    options: { a: "i", b: "-i", c: "1", d: "-1" },
+    correctAnswer: "d"
+  },
+  {
+    text: "x = √<span style='text-decoration:overline'>1 + √<span style='text-decoration:overline'>1 + √<span style='text-decoration:overline'>1 + …</span></span></span> then x is equal to",
+    options: { a: "(1 + √5)/2", b: "(1 - √5)/2", c: "(1 ± √5)/2", d: "None of these" },
+    correctAnswer: "a"
+  },
+  {
+    text: "The number which exceeds its positive square root by 12 is",
+    options: { a: "9", b: "16", c: "25", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "The value of z for which |z + i| = |z - i| are",
+    options: { a: "any real number", b: "any complex number", c: "any natural number", d: "None of these" },
+    correctAnswer: "a"
+  },
+  {
+    text: "The roots of x² - 5x + 6 = 0 are",
+    options: { a: "2, 3", b: "1, 6", c: "-2, -3", d: "None of these" },
+    correctAnswer: "a"
+  },
+  {
+    text: "If n(A) = 5, n(B) = 4 and n(A∩B) = 2, then n(A∪B) is",
+    options: { a: "9", b: "7", c: "11", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "If f(x) = x² + 1, then f(3) is",
+    options: { a: "8", b: "9", c: "10", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "The modulus of 3 + 4i is",
+    options: { a: "3", b: "4", c: "5", d: "7" },
+    correctAnswer: "c"
+  },
+  {
+    text: "The sum of roots of 2x² - 5x + 3 = 0 is",
+    options: { a: "5/2", b: "3/2", c: "-5/2", d: "None of these" },
+    correctAnswer: "a"
+  },
+  {
+    text: "The total number of subsets of the set {a, b, c, d} is",
+    options: { a: "8", b: "12", c: "16", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "f(x) = 1/(x - 2) f(3) is",
+    options: { a: "2", b: "1", c: "96", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "The conjugate of 2 - 3i is",
+    options: { a: "-2 + 3i", b: "2 + 3i", c: "-2 - 3i", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "The product of roots of x² - 7x + 12 = 0 is",
+    options: { a: "7", b: "-12", c: "12", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "If A ⊂ B, then A ∪ B equals",
+    options: { a: "A", b: "B", c: "A ∩ B", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "If f(x) = 2x + 3, then f(f(1)) is",
+    options: { a: "9", b: "11", c: "13", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "(1 + i)² equals",
+    options: { a: "1 + 2i", b: "2", c: "2i", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "If one root of x² - 5x + k = 0 is 2, then k =",
+    options: { a: "-6", b: "3", c: "6", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "If n(A∪B) = 50, n(A) = 28, n(B) = 32, then n(A∩B) =",
+    options: { a: "8", b: "10", c: "12", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "The range of f(x) = x² where x ∈ R is",
+    options: { a: "R", b: "[0, ∞)", c: "(0, ∞)", d: "None of these" },
+    correctAnswer: "b"
+  },
+  {
+    text: "The modulus of the complex number -1 + i is",
+    options: { a: "√3", b: "√5", c: "√2", d: "None of these" },
+    correctAnswer: "c"
+  },
+  {
+    text: "The discriminant of x² - 4x + 4 = 0 is",
+    options: { a: "0", b: "4", c: "16", d: "None of these" },
+    correctAnswer: "a"
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────
+const TOTAL_TIME = 45 * 60; // seconds
+let timeLeft = TOTAL_TIME;
+let timerInterval = null;
+let isPaused = false;
+let userAnswers = {}; // { questionIndex: 'a' | 'b' | 'c' | 'd' }
+
+// ─── HELPERS ──────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function formatTime(seconds) {
+  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+// ─── BUILD QUESTIONS ──────────────────────────────────────
+function buildQuestions() {
+  const container = document.getElementById('questionsContainer');
+  container.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-card-${i}`;
+
+    const letters = ['a', 'b', 'c', 'd'];
+
+    card.innerHTML = `
+      <div class="q-number">Q ${i + 1} of ${questions.length}</div>
+      <div class="q-text">${q.text}</div>
+      <ul class="options-list">
+        ${letters.map(l => `
+          <li class="option-item" id="opt-${i}-${l}" onclick="selectAnswer(${i}, '${l}')">
+            <span class="option-letter">${l}</span>
+            <span class="option-text">${q.options[l]}</span>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+// ─── SELECT ANSWER ────────────────────────────────────────
+function selectAnswer(qIndex, letter) {
+  if (isPaused) return;
+
+  const prev = userAnswers[qIndex];
+  if (prev) {
+    document.getElementById(`opt-${qIndex}-${prev}`)?.classList.remove('selected');
+  }
+
+  userAnswers[qIndex] = letter;
+  document.getElementById(`opt-${qIndex}-${letter}`)?.classList.add('selected');
+  document.getElementById(`q-card-${qIndex}`)?.classList.add('answered');
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = Object.keys(userAnswers).length;
+  const pct = (answered / questions.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${answered} / ${questions.length}`;
+  document.getElementById('submitInfo').textContent =
+    answered === questions.length
+      ? 'All questions answered — ready to submit!'
+      : `${questions.length - answered} question(s) remaining.`;
+}
+
+// ─── TIMER ────────────────────────────────────────────────
+function startTimer() {
+  timerInterval = setInterval(() => {
+    if (isPaused) return;
+    timeLeft--;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+
+    if (timeLeft <= 300) { // last 5 mins
+      document.getElementById('timerDisplay').classList.add('danger');
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      submitTest(true);
+    }
+  }, 1000);
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const overlay = document.getElementById('pauseOverlay');
+  const btn = document.getElementById('pauseBtn');
+
+  if (isPaused) {
+    overlay.classList.add('show');
+    btn.textContent = '▶ Resume';
+  } else {
+    overlay.classList.remove('show');
+    btn.innerHTML = '⏸ Pause';
+  }
+}
+
+// ─── START TEST ───────────────────────────────────────────
+function startTest() {
+  userAnswers = {};
+  timeLeft = TOTAL_TIME;
+  isPaused = false;
+  document.getElementById('timerDisplay').classList.remove('danger');
+
+  buildQuestions();
+  showScreen('testScreen');
+  updateProgress();
+  startTimer();
+
+  window.scrollTo({ top: 0 });
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────
+function submitTest(timeout = false) {
+  clearInterval(timerInterval);
+  isPaused = false;
+  document.getElementById('pauseOverlay').classList.remove('show');
+
+  if (!timeout) {
+    const answered = Object.keys(userAnswers).length;
+    if (answered < questions.length) {
+      const unanswered = questions.length - answered;
+      if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) {
+        startTimer();
+        return;
+      }
+    }
+  }
+
+  calculateResults();
+}
+
+function calculateResults() {
+  let correct = 0, wrong = 0, skipped = 0;
+
+  questions.forEach((q, i) => {
+    const ans = userAnswers[i];
+    if (!ans) { skipped++; }
+    else if (ans === q.correctAnswer) { correct++; }
+    else { wrong++; }
+  });
+
+  const score = (correct * 4) - (wrong * 1);
+  const maxScore = questions.length * 4;
+  const rawPct = (score / maxScore) * 100;
+  const pct = Math.max(0, Math.round(rawPct));
+
+  // Emoji & title
+  let emoji = '😐', title = 'Keep Practising';
+  if (pct >= 85)      { emoji = '🏆'; title = 'Outstanding!'; }
+  else if (pct >= 70) { emoji = '🎉'; title = 'Great Work!'; }
+  else if (pct >= 50) { emoji = '👍'; title = 'Good Attempt!'; }
+  else if (pct >= 30) { emoji = '📖'; title = 'Keep Practising'; }
+  else                { emoji = '💪'; title = 'Don\'t Give Up!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultSub').textContent = `You scored ${score} out of ${maxScore} marks`;
+  document.getElementById('scorePct').textContent = pct + '%';
+  document.getElementById('rCorrect').textContent = correct;
+  document.getElementById('rWrong').textContent = wrong;
+  document.getElementById('rSkipped').textContent = skipped;
+  document.getElementById('rScore').textContent = score;
+  document.getElementById('scoreFormula').textContent =
+    `(${correct} × 4) − (${wrong} × 1) = ${score} / ${maxScore}`;
+
+  // Ring color
+  const ring = document.getElementById('ringFill');
+  const circumference = 2 * Math.PI * 65;
+  ring.style.strokeDasharray = `${(pct / 100) * circumference} ${circumference}`;
+  ring.setAttribute('stroke', pct >= 70 ? '#3ecf8e' : pct >= 40 ? '#c9a84c' : '#f25f5c');
+
+  buildReview(correct, wrong);
+  showScreen('resultScreen');
+  window.scrollTo({ top: 0 });
+}
+
+function buildReview(correct, wrong) {
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const ans = userAnswers[i];
+    const isCorrect = ans && ans === q.correctAnswer;
+    const isSkipped = !ans;
+
+    const color = isSkipped ? 'var(--unanswered)' : isCorrect ? 'var(--correct)' : 'var(--incorrect)';
+    const pts = isSkipped ? 0 : isCorrect ? +4 : -1;
+    const ptsStr = isSkipped ? '0' : isCorrect ? '+4' : '−1';
+
+    const ansLabel = ans ? `(${ans}) ${q.options[ans]}` : '—';
+    const correctLabel = `(${q.correctAnswer}) ${q.options[q.correctAnswer]}`;
+
+    const item = document.createElement('div');
+    item.className = 'review-item';
+    item.innerHTML = `
+      <div class="review-num">Q${i + 1}</div>
+      <div class="review-dot" style="background:${color}"></div>
+      <div class="review-body">
+        <div class="review-q">${q.text}</div>
+        <div class="review-ans">
+          Your answer: <span style="color:${color}">${ansLabel}</span>
+          ${!isCorrect && !isSkipped ? ` &nbsp;|&nbsp; Correct: <span style="color:var(--correct)">${correctLabel}</span>` : ''}
+          ${isSkipped ? ` &nbsp;|&nbsp; Correct: <span style="color:var(--correct)">${correctLabel}</span>` : ''}
+        </div>
+      </div>
+      <div class="review-score" style="color:${color}">${ptsStr}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ─── RETRY ────────────────────────────────────────────────
+function retryTest() {
+  showScreen('startScreen');
+}
+</script>
+</body>
+</html>
